@@ -14,9 +14,7 @@
 package main
 
 import (
-	"bufio"
 	"log"
-	"os"
 	"github.com/piaoyunsoft/gosocket"
 )
 
@@ -65,9 +63,7 @@ func main() {
 package main
 
 import (
-	"bufio"
 	"log"
-	"os"
 	"github.com/piaoyunsoft/gosocket"
 )
 
