@@ -21,18 +21,8 @@ type tcpClientState struct {
 }
 
 // CreateTCPClient 创建一个TCPClient实例
-func CreateTCPClient(handlerConnect TCPConnectHandler, handlerDisconnect TCPDisconnectHandler,
-	handlerRecv TCPRecvHandler, handlerError TCPErrorHandler) *TCPClient {
-	client := &TCPClient{
-		userHandler: tcpEventHandler{
-			handlerConnect:    handlerConnect,
-			handlerDisconnect: handlerDisconnect,
-			handlerRecv:       handlerRecv,
-			handlerError:      handlerError,
-		},
-	}
-
-	return client
+func CreateTCPClient(handler tcpEventHandler) *TCPClient {
+	return &TCPClient{userHandler: handler}
 }
 
 // Connect 连接到服务器
@@ -44,8 +34,8 @@ func (client *TCPClient) Connect(addr string, port uint16) error {
 	client.c = newConnection(conn)
 
 	// Fixed By PiaoYun -- 连接回调 2017-07-29
-	if client.userHandler.handlerConnect != nil {
-		client.userHandler.handlerConnect(client.c)
+	if client.userHandler != nil {
+		client.userHandler.OnConnect(client.c)
 	}
 
 	client.tcpClientState = tcpClientState{
@@ -69,8 +59,8 @@ func (client *TCPClient) Send(data []byte) {
 func (client *TCPClient) Close() {
 	client.c.Close()
 	client.wg.Wait()
-	if client.userHandler.handlerDisconnect != nil {
-		client.userHandler.handlerDisconnect(client.c)
+	if client.userHandler != nil {
+		client.userHandler.OnDisconnect(client.c)
 	}
 }
 

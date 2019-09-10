@@ -53,21 +53,21 @@ func (c *Connection) recvThread(wg *sync.WaitGroup, handler tcpEventHandler) {
 				break
 			}
 			if err != io.EOF {
-				if handler.handlerError != nil {
-					handler.handlerError(c, err)
+				if handler != nil {
+					handler.OnError(c, err)
 				}
 				break
 			}
 
-			if handler.handlerDisconnect != nil {
-				handler.handlerDisconnect(c)
+			if handler != nil {
+				handler.OnDisconnect(c)
 			}
 			break
 		}
 
 		//session.RecvedPackets = append(session.RecvedPackets, buffer[:n]...)
-		if handler.handlerRecv != nil {
-			handler.handlerRecv(c, buffer[:n])
+		if handler != nil {
+			handler.OnRecv(c, buffer[:n])
 		}
 	}
 

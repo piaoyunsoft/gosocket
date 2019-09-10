@@ -24,23 +24,15 @@ type tcpServerState struct {
 }
 
 // CreateTCPServer 创建一个TCPServer, 返回*TCPServer
-func CreateTCPServer(addr string, port uint16, handlerConnect TCPConnectHandler, handlerDisconnect TCPDisconnectHandler,
-	handlerRecv TCPRecvHandler, handlerError TCPErrorHandler) *TCPServer {
-	server := &TCPServer{
+func CreateTCPServer(addr string, port uint16, handler tcpEventHandler) *TCPServer {
+	return &TCPServer{
 		tcpServerState: tcpServerState{
 			listenAddr:      addr,
 			listenPort:      port,
 			connectionCount: 0,
 		},
-		userHandler: tcpEventHandler{
-			handlerConnect:    handlerConnect,
-			handlerDisconnect: handlerDisconnect,
-			handlerRecv:       handlerRecv,
-			handlerError:      handlerError,
-		},
+		userHandler: handler,
 	}
-
-	return server
 }
 
 // Start 开始服务
@@ -109,28 +101,28 @@ func (server *TCPServer) makeSession(conn net.Conn) (session *Connection) {
 
 func (server *TCPServer) processConnect(c *Connection) {
 	log.Printf("ACCEPTED: %s\n", c.RemoteAddr())
-	if server.userHandler.handlerConnect != nil {
-		server.userHandler.handlerConnect(c)
+	if server.userHandler != nil {
+		server.userHandler.OnConnect(c)
 	}
 }
 
 func (server *TCPServer) processDisconnect(c *Connection) {
 	log.Printf("CONNECTION CLOSED: %s\n", c.RemoteAddr())
-	if server.userHandler.handlerDisconnect != nil {
-		server.userHandler.handlerDisconnect(c)
+	if server.userHandler != nil {
+		server.userHandler.OnDisconnect(c)
 	}
 }
 
 func (server *TCPServer) processRecv(c *Connection, data []byte) {
 	log.Printf("DATA RECVED: %x\n", data)
-	if server.userHandler.handlerRecv != nil {
-		server.userHandler.handlerRecv(c, data)
+	if server.userHandler != nil {
+		server.userHandler.OnRecv(c, data)
 	}
 }
 
 func (server *TCPServer) processError(c *Connection, err error) {
 	log.Printf("ERROR: %s\n", err.Error())
-	if server.userHandler.handlerError != nil {
-		server.userHandler.handlerError(c, err)
+	if server.userHandler != nil {
+		server.userHandler.OnError(c, err)
 	}
 }
